@@ -1,16 +1,28 @@
 {
   "version": 5,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 29,
+    "patch": 0
+  },
 
-  
   "configurePresets": [
     {
-        "name": "vs-debug",
-        "displayName": "VS 2022 ‑ x64 Debug (Ninja)",
-        "generator": "Ninja",
-        "binaryDir": "${sourceDir}/build/${presetName}",
-        "architecture": { "value": "x64", "strategy": "set" },
-        "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" }
+      "name": "windows-msvc-release",
+      "displayName": "Ninja MSVC x64 Release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "environment": {
+        "CMAKE_GENERATOR_PLATFORM": "",
+        "Platform": "",
+        "VSCMD_ARG_TGT_ARCH": "",
+        "VSCMD_DEFAULT_TGT_ARCH": ""
       },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_SHARED_LIBS": "OFF"
+      }
+    },
     {
       "name": "windows-msvc-release",
       "displayName": "Win64 MSVC Release",
@@ -30,47 +42,13 @@
           "RemoteMachineName": "Windows11-ARM64"
         }
       }
-    },
-
-    {
-      "name": "windows-clang-asan",
-      "displayName": "Win64 Clang‑CL ASAN Debug",
-      "inherits": "windows-msvc-release",         // 差分だけ上書き
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "ENABLE_ASAN": "ON"
-      },
-      "environment": {                            // gh→VSCode 共通
-        "CLANG_CL": "1"
-      },
-      "toolchainFile": "cmake/toolchains/clang-cl.cmake"
-    },
-    {
-        "name": "vs-ninja-debug",
-        "displayName": "VS Ninja Multi‑Config Debug",
-        "generator": "Ninja Multi-Config",
-        "binaryDir": "${sourceDir}/build/${presetName}",
-        "cacheVariables": {
-          "CMAKE_CONFIGURATION_TYPES": "Debug;Release"
-        },
-        "environment": {
-          "CMAKE_GENERATOR_PLATFORM": "", 
-          "Platform": ""
-        },
-        "vendor": {                    
-          "microsoft.com/VisualStudio": {
-            "platform": ""                
-          }
-        }
-      }
-      
+    }
   ],
 
   "buildPresets": [
     {
       "name": "windows-msvc-release-build",
-      "configurePreset": "windows-msvc-release",
-      "configuration": "Release"
+      "configurePreset": "windows-msvc-release"
     }
   ],
 
@@ -78,9 +56,7 @@
     {
       "name": "windows-msvc-release-test",
       "configurePreset": "windows-msvc-release",
-      "output": {
-        "outputOnFailure": true
-      }
+      "output": { "outputOnFailure": true }
     }
   ]
 }
