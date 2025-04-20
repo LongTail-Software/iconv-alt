@@ -1,16 +1,11 @@
 {
   "version": 5,
-
   "configurePresets": [
     {
       "name": "windows-msvc-release",
       "displayName": "Win64 MSVC Release",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
-      "architecture": {
-        "value": "x64",
-        "strategy": "set"
-      },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_C_STANDARD": "17",
@@ -35,10 +30,6 @@
       "displayName": "Win64 MSVC Debug",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
-      "architecture": {
-        "value": "x64",
-        "strategy": "set"
-      },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_STANDARD": "17",
