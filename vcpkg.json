@@ -1,0 +1,6 @@
+{
+  "name": "iconv-alt",
+  "version-string": "0.0.0-bootstrap",
+  "description": "Clean-room implementation of POSIX iconv()",
+  "dependencies": []
+}
