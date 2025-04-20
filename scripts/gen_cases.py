@@ -19,7 +19,8 @@ for line in TABLE.read_text(encoding="utf-8").splitlines():
 
 body = []
 for sj, uni in pairs:
-    body.append(f'''    CASE(0x{sj:04X}, u"{chr(uni)}");''')
+    body.append(f'    CASE(0x{sj:04X}, u8"{chr(uni)}");')
+
 
 cpp = textwrap.dedent(f"""
     #include <gtest/gtest.h>
