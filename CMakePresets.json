@@ -1,7 +1,16 @@
 {
   "version": 5,
 
+  
   "configurePresets": [
+    {
+        "name": "vs-debug",
+        "displayName": "VS 2022 ‑ x64 Debug (Ninja)",
+        "generator": "Ninja",
+        "binaryDir": "${sourceDir}/build/${presetName}",
+        "architecture": { "value": "x64", "strategy": "set" },
+        "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" }
+      },
     {
       "name": "windows-msvc-release",
       "displayName": "Win64 MSVC Release",
@@ -35,7 +44,26 @@
         "CLANG_CL": "1"
       },
       "toolchainFile": "cmake/toolchains/clang-cl.cmake"
-    }
+    },
+    {
+        "name": "vs-ninja-debug",
+        "displayName": "VS Ninja Multi‑Config Debug",
+        "generator": "Ninja Multi-Config",
+        "binaryDir": "${sourceDir}/build/${presetName}",
+        "cacheVariables": {
+          "CMAKE_CONFIGURATION_TYPES": "Debug;Release"
+        },
+        "environment": {
+          "CMAKE_GENERATOR_PLATFORM": "", 
+          "Platform": ""
+        },
+        "vendor": {                    
+          "microsoft.com/VisualStudio": {
+            "platform": ""                
+          }
+        }
+      }
+      
   ],
 
   "buildPresets": [
