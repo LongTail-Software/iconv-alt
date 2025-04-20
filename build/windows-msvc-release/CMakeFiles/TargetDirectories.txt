@@ -1,8 +1,0 @@
-C:/Dev/iconv-alt/build/windows-msvc-release/CMakeFiles/iconv.dir
-C:/Dev/iconv-alt/build/windows-msvc-release/CMakeFiles/test.dir
-C:/Dev/iconv-alt/build/windows-msvc-release/CMakeFiles/edit_cache.dir
-C:/Dev/iconv-alt/build/windows-msvc-release/CMakeFiles/rebuild_cache.dir
-C:/Dev/iconv-alt/build/windows-msvc-release/tests/CMakeFiles/smoke.dir
-C:/Dev/iconv-alt/build/windows-msvc-release/tests/CMakeFiles/test.dir
-C:/Dev/iconv-alt/build/windows-msvc-release/tests/CMakeFiles/edit_cache.dir
-C:/Dev/iconv-alt/build/windows-msvc-release/tests/CMakeFiles/rebuild_cache.dir
