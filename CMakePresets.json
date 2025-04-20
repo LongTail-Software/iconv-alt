@@ -6,56 +6,112 @@
     "patch": 0
   },
 
+  /*------------------------------------------------------------------
+   * 1. Configure Presets
+   *----------------------------------------------------------------*/
   "configurePresets": [
     {
       "name": "windows-msvc-release",
-      "displayName": "Ninja MSVC x64 Release",
+      "displayName": "Win64 MSVC Release",
       "generator": "Ninja",
+
+      /* ビルドディレクトリ  */
       "binaryDir": "${sourceDir}/build/${presetName}",
+
+      /* --- 必須キャッシュ変数 --- */
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_STANDARD": "17",
+        "BUILD_SHARED_LIBS": "ON",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+      },
+
+      /* 指定が無いと VS が x86 扱いになる場合がある → 明示 */
+      "architecture": {
+        "value": "x64",
+        "strategy": "set"
+      },
+
+      /* VS のリモート設定を要求された場合ここが無いと警告になる */
+      "vendor": {
+        "microsoft.com/VisualStudioRemoteSettings": {
+          "RemoteMachineName": "Windows11-ARM64"
+        }
+      },
+
+      /* Ninja + MSVC で “‑A x64” 衝突回避 */
       "environment": {
         "CMAKE_GENERATOR_PLATFORM": "",
         "Platform": "",
         "VSCMD_ARG_TGT_ARCH": "",
         "VSCMD_DEFAULT_TGT_ARCH": ""
-      },
+      }
+    },
+
+    {
+      "name": "windows-msvc-debug",
+      "displayName": "Win64 MSVC Debug",
+      "inherits": "windows-msvc-release",
+      "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_BUILD_TYPE": "Debug",
         "BUILD_SHARED_LIBS": "OFF"
       }
     },
+
+    /* 追加: Visual Studio ジェネレータ用 (‑A x64 OK) -------------*/
     {
-      "name": "windows-msvc-release",
-      "displayName": "Win64 MSVC Release",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/${presetName}",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_C_STANDARD": "17",
-        "BUILD_SHARED_LIBS": "ON"
-      },
+      "name": "vs2022-release",
+      "displayName": "VS 2022 ‑ x64 Release",
+      "generator": "Visual Studio 17 2022",
       "architecture": {
         "value": "x64",
         "strategy": "set"
       },
-      "vendor": {
-        "microsoft.com/VisualStudioRemoteSettings": {
-          "RemoteMachineName": "Windows11-ARM64"
-        }
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake"
       }
     }
   ],
 
+  /*------------------------------------------------------------------
+   * 2. Build Presets
+   *----------------------------------------------------------------*/
   "buildPresets": [
     {
       "name": "windows-msvc-release-build",
       "configurePreset": "windows-msvc-release"
+    },
+    {
+      "name": "windows-msvc-debug-build",
+      "configurePreset": "windows-msvc-debug"
+    },
+    {
+      "name": "vs2022-release-build",
+      "configurePreset": "vs2022-release",
+      "configuration": "Release"
     }
   ],
 
+  /*------------------------------------------------------------------
+   * 3. Test Presets
+   *----------------------------------------------------------------*/
   "testPresets": [
     {
       "name": "windows-msvc-release-test",
       "configurePreset": "windows-msvc-release",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "windows-msvc-debug-test",
+      "configurePreset": "windows-msvc-debug",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "vs2022-release-test",
+      "configurePreset": "vs2022-release",
       "output": { "outputOnFailure": true }
     }
   ]
