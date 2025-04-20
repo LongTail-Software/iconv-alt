@@ -30,14 +30,10 @@ gtest_discover_tests(sjis_utf8)
 # ----------------------------------------------------------
 # 3. auto_rt — 全コード点網羅 (存在すれば)
 # ----------------------------------------------------------
-if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/auto_rt.cpp)
-    add_executable(auto_rt auto_rt.cpp)
-    target_link_libraries(
-        auto_rt
-        PRIVATE
-            iconv
-            GTest::gtest
-            GTest::gtest_main   # ★ 追加
-    )
-    gtest_discover_tests(auto_rt)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  add_executable(auto_rt auto_rt.cpp)
+  target_link_libraries(auto_rt PRIVATE iconv GTest::gtest GTest::gtest_main)
+  target_link_options(auto_rt PRIVATE "/DEBUG:FASTLINK")  # 高速リンク
+  gtest_discover_tests(auto_rt)
 endif()
+
