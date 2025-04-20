@@ -1,9 +1,91 @@
 name: CI
-on: [push, pull_request]
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  build-test:
+    runs-on: windows-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Placeholder
-        run: echo "CI placeholder"
+      #------------------------------------------------------------
+      # 1. 取得 & キャッシュ
+      #------------------------------------------------------------
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:\vcpkg\installed
+            C:\vcpkg\downloads
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-
+
+      #------------------------------------------------------------
+      # 2. VS2022 開発環境 / Ninja を有効化
+      #------------------------------------------------------------
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      #------------------------------------------------------------
+      # 3. Python (テーブル生成スクリプト用)
+      #------------------------------------------------------------
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      #------------------------------------------------------------
+      # 4. 依存 (vcpkg) 取得
+      #------------------------------------------------------------
+      - name: Install vcpkg dependencies
+        run: |
+          git clone https://github.com/microsoft/vcpkg C:\vcpkg -n
+          C:\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+          C:\vcpkg\vcpkg.exe install --triplet x64-windows
+
+      #------------------------------------------------------------
+      # 5. テーブル & テストコード自動生成
+      #------------------------------------------------------------
+      - name: Generate SJIS table / test cases
+        run: |
+          python scripts/gen_sjis_table.py
+          python scripts/gen_cases.py
+
+      #------------------------------------------------------------
+      # 6. CMake Configure (プリセット)
+      #------------------------------------------------------------
+      - name: Configure
+        run: |
+          cmake --preset windows-msvc-release `
+                -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+      #------------------------------------------------------------
+      # 7. Build
+      #------------------------------------------------------------
+      - name: Build
+        run: cmake --build --preset windows-msvc-release-build --parallel
+
+      #------------------------------------------------------------
+      # 8. Test
+      #------------------------------------------------------------
+      - name: CTest
+        run: ctest --preset windows-msvc-release-test --output-on-failure
+
+      #------------------------------------------------------------
+      # 9. (任意)成果物アップロード
+      #------------------------------------------------------------
+      - name: Upload smoke.exe (debug)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke
+          path: build/windows-msvc-release/tests/smoke.exe
