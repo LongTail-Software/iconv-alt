@@ -1,0 +1,58 @@
+{
+  "version": 5,
+
+  "configurePresets": [
+    {
+      "name": "windows-msvc-release",
+      "displayName": "Win64 MSVC Release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_STANDARD": "17",
+        "BUILD_SHARED_LIBS": "ON"
+      },
+      "architecture": {
+        "value": "x64",
+        "strategy": "set"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioRemoteSettings": {
+          "RemoteMachineName": "Windows11-ARM64"
+        }
+      }
+    },
+
+    {
+      "name": "windows-clang-asan",
+      "displayName": "Win64 Clang‑CL ASAN Debug",
+      "inherits": "windows-msvc-release",         // 差分だけ上書き
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_ASAN": "ON"
+      },
+      "environment": {                            // gh→VSCode 共通
+        "CLANG_CL": "1"
+      },
+      "toolchainFile": "cmake/toolchains/clang-cl.cmake"
+    }
+  ],
+
+  "buildPresets": [
+    {
+      "name": "windows-msvc-release-build",
+      "configurePreset": "windows-msvc-release",
+      "configuration": "Release"
+    }
+  ],
+
+  "testPresets": [
+    {
+      "name": "windows-msvc-release-test",
+      "configurePreset": "windows-msvc-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}
