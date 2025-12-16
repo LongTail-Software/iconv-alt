@@ -43,6 +43,7 @@ This directory contains the core implementation of iconv-alt.
 
 | Function | Description |
 |----------|-------------|
+| `u32_to_utf8(cp, *out)` | Encode Unicode code point to UTF-8 (1-4 bytes) |
 | `utf8_next(**p, end, *cp)` | Decode one UTF-8 character |
 
 ## Architecture

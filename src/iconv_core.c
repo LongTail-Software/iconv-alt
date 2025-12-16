@@ -10,35 +10,12 @@
 #include <stdlib.h>
 #include <string.h>
 
- /*======================================================================
-  *  0.  SJIS <-> Unicode ルックアップ (sjis.c で定義)
-  *====================================================================*/
+/*======================================================================
+ *  0.  External functions (defined in sjis.c and utf8.c)
+ *====================================================================*/
 extern int sjis_to_unicode(uint16_t code, uint32_t* uni);
 extern int unicode_to_sjis(uint32_t uni, uint16_t* sjis);
-
-/*======================================================================
- *  1.  UTF‑8 エンコード / デコード ヘルパ
- *====================================================================*/
-static int u32_to_utf8(uint32_t cp, char* out)  /* return bytes (1‑4) */
-{
-    if (cp <= 0x7F) { out[0] = (char)cp; return 1; }
-    if (cp <= 0x7FF) {
-        out[0] = (char)(0xC0 | (cp >> 6));
-        out[1] = (char)(0x80 | (cp & 0x3F));
-        return 2;
-    }
-    if (cp <= 0xFFFF) {
-        out[0] = (char)(0xE0 | (cp >> 12));
-        out[1] = (char)(0x80 | ((cp >> 6) & 0x3F));
-        out[2] = (char)(0x80 | (cp & 0x3F));
-        return 3;
-    }
-    out[0] = (char)(0xF0 | (cp >> 18));
-    out[1] = (char)(0x80 | ((cp >> 12) & 0x3F));
-    out[2] = (char)(0x80 | ((cp >> 6) & 0x3F));
-    out[3] = (char)(0x80 | (cp & 0x3F));
-    return 4;
-}
+extern int u32_to_utf8(uint32_t cp, char* out);
 
 static int utf8_feed(uint8_t byte, uint8_t* buf, uint8_t* need, uint32_t* cp)
 {
