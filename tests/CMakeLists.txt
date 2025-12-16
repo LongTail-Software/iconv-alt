@@ -28,15 +28,15 @@ target_link_libraries(
 gtest_discover_tests(sjis_utf8)
 
 # ----------------------------------------------------------
-# 3. auto_rt — 全コード点網羅テスト
+# 3. auto_rt — 全コード点網羅テスト (Debug のみ)
+#    ※ 7915 ケースのコンパイルに時間がかかるため Release では無効
 # ----------------------------------------------------------
-add_executable(auto_rt auto_rt.cpp)
-target_link_libraries(auto_rt PRIVATE iconv GTest::gtest GTest::gtest_main)
-
-# MSVC Debug ビルド時のみ高速リンクを有効化
-if(MSVC AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-  target_link_options(auto_rt PRIVATE "/DEBUG:FASTLINK")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  add_executable(auto_rt auto_rt.cpp)
+  target_link_libraries(auto_rt PRIVATE iconv GTest::gtest GTest::gtest_main)
+  if(MSVC)
+    target_link_options(auto_rt PRIVATE "/DEBUG:FASTLINK")
+  endif()
+  gtest_discover_tests(auto_rt)
 endif()
-
-gtest_discover_tests(auto_rt)
 
