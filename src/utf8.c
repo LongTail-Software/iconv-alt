@@ -1,7 +1,48 @@
-﻿#include <stdint.h>
+/*----------------------------------------------------------------------
+ *  src/utf8.c  —  UTF-8 encoding/decoding utilities
+ *--------------------------------------------------------------------*/
+#include <stdint.h>
 #include <stddef.h>
 
-/* 返り値: 0=OK, <0=不正系列 */
+/*======================================================================
+ *  u32_to_utf8 - Encode a Unicode code point to UTF-8
+ *  
+ *  Input:  cp  - Unicode code point (U+0000 to U+10FFFF)
+ *          out - Output buffer (must have at least 4 bytes)
+ *  Output: Number of bytes written (1-4)
+ *====================================================================*/
+int u32_to_utf8(uint32_t cp, char* out)
+{
+    if (cp <= 0x7F) {
+        out[0] = (char)cp;
+        return 1;
+    }
+    if (cp <= 0x7FF) {
+        out[0] = (char)(0xC0 | (cp >> 6));
+        out[1] = (char)(0x80 | (cp & 0x3F));
+        return 2;
+    }
+    if (cp <= 0xFFFF) {
+        out[0] = (char)(0xE0 | (cp >> 12));
+        out[1] = (char)(0x80 | ((cp >> 6) & 0x3F));
+        out[2] = (char)(0x80 | (cp & 0x3F));
+        return 3;
+    }
+    out[0] = (char)(0xF0 | (cp >> 18));
+    out[1] = (char)(0x80 | ((cp >> 12) & 0x3F));
+    out[2] = (char)(0x80 | ((cp >> 6) & 0x3F));
+    out[3] = (char)(0x80 | (cp & 0x3F));
+    return 4;
+}
+
+/*======================================================================
+ *  utf8_next - Decode one UTF-8 character
+ *  
+ *  Input:  p   - Pointer to current position (updated on success)
+ *          end - End of buffer
+ *  Output: out_cp - Decoded Unicode code point
+ *  Return: 0 = OK, <0 = invalid sequence
+ *====================================================================*/
 int utf8_next(const unsigned char** p, const unsigned char* end, uint32_t* out_cp)
 {
     if (*p == end) return -1;

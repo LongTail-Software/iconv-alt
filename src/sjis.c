@@ -36,55 +36,10 @@ int unicode_to_sjis(uint32_t uni, uint16_t* sjis)
 }
 
 /*======================================================================
- *  2.  Unicode <-> UTF‑8 ヘルパ
+ *  2.  External UTF-8 helpers (defined in utf8.c)
  *====================================================================*/
-static int u32_to_utf8(uint32_t cp, char out[4])
-{
-    if (cp <= 0x7F) { out[0] = (char)cp; return 1; }
-    if (cp <= 0x7FF) {
-        out[0] = (char)(0xC0 | (cp >> 6));
-        out[1] = (char)(0x80 | (cp & 0x3F));
-        return 2;
-    }
-    if (cp <= 0xFFFF) {
-        out[0] = (char)(0xE0 | (cp >> 12));
-        out[1] = (char)(0x80 | ((cp >> 6) & 0x3F));
-        out[2] = (char)(0x80 | (cp & 0x3F));
-        return 3;
-    }
-    /* Shift‑JIS に 4‑byte 対応は不要だが、生成だけ実装 */
-    out[0] = (char)(0xF0 | (cp >> 18));
-    out[1] = (char)(0x80 | ((cp >> 12) & 0x3F));
-    out[2] = (char)(0x80 | ((cp >> 6) & 0x3F));
-    out[3] = (char)(0x80 | (cp & 0x3F));
-    return 4;
-}
-
-/* UTF‑8 1 文字をデコード。戻り値 0=OK, <0=不正   */
-static int utf8_next(const unsigned char** p,
-    const unsigned char* end,
-    uint32_t* cp_out)
-{
-    if (*p >= end) return -1;
-    uint32_t c = *(*p)++;
-    if (c < 0x80) { *cp_out = c; return 0; }
-
-    if ((c & 0xE0) == 0xC0) {               /* 2‑byte */
-        if (*p >= end) return -1;
-        uint32_t c2 = *(*p)++;
-        if ((c2 & 0xC0) != 0x80) return -1;
-        *cp_out = ((c & 0x1F) << 6) | (c2 & 0x3F);
-        return 0;
-    }
-    if ((c & 0xF0) == 0xE0) {               /* 3‑byte */
-        if (end - *p < 2) return -1;
-        uint32_t c2 = *(*p)++, c3 = *(*p)++;
-        if ((c2 & 0xC0) != 0x80 || (c3 & 0xC0) != 0x80) return -1;
-        *cp_out = ((c & 0x0F) << 12) | ((c2 & 0x3F) << 6) | (c3 & 0x3F);
-        return 0;
-    }
-    return -1;                              /* SJIS 対象外 (4‑byte) */
-}
+extern int u32_to_utf8(uint32_t cp, char* out);
+extern int utf8_next(const unsigned char** p, const unsigned char* end, uint32_t* out_cp);
 
 /*======================================================================
  *  3.  Public 変換 API

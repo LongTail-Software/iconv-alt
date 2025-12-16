@@ -1,6 +1,6 @@
 {
   "name": "iconv-alt",
-  "version-string": "0.0.0-bootstrap",
+  "version-string": "0.1.0",
   "description": "Clean-room implementation of POSIX iconv()",
   "dependencies": [ "gtest" ]
 }
