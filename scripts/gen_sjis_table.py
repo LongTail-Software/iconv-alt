@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Generate include/sjis_table.h from official CP932 mapping file.
 
@@ -54,8 +54,12 @@ def download_cp932(urls: list[str]) -> str:
 
 
 def parse_pairs(text: str) -> list[tuple[int, int]]:
-    """Parse lines like '0x8140  0x3000 # ...' -> (0x8140, 0x3000)"""
-    pat = re.compile(r"^0x([0-9A-F]{4})\s+0x([0-9A-F]{4})")
+    """Parse lines like '0x8140  0x3000 # ...' or '0xA1  0xFF61 # ...'
+    
+    Handles both 2-digit (half-width katakana, ASCII) and 4-digit SJIS codes.
+    """
+    # Match 2-4 digit SJIS codes and 4 digit Unicode codes
+    pat = re.compile(r"^0x([0-9A-F]{2,4})\s+0x([0-9A-F]{4})", re.IGNORECASE)
     pairs: list[tuple[int, int]] = []
     for line in text.splitlines():
         m = pat.match(line)
