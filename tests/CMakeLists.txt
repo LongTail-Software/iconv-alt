@@ -1,4 +1,4 @@
-﻿# tests/CMakeLists.txt — すべてのユニットテストをここで定義
+# tests/CMakeLists.txt — すべてのユニットテストをここで定義
 
 # ----------------------------------------------------------
 # 0. GoogleTest を取ってくる
@@ -28,12 +28,15 @@ target_link_libraries(
 gtest_discover_tests(sjis_utf8)
 
 # ----------------------------------------------------------
-# 3. auto_rt — 全コード点網羅 (存在すれば)
+# 3. auto_rt — 全コード点網羅テスト
 # ----------------------------------------------------------
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_executable(auto_rt auto_rt.cpp)
-  target_link_libraries(auto_rt PRIVATE iconv GTest::gtest GTest::gtest_main)
-  target_link_options(auto_rt PRIVATE "/DEBUG:FASTLINK")  # 高速リンク
-  gtest_discover_tests(auto_rt)
+add_executable(auto_rt auto_rt.cpp)
+target_link_libraries(auto_rt PRIVATE iconv GTest::gtest GTest::gtest_main)
+
+# MSVC Debug ビルド時のみ高速リンクを有効化
+if(MSVC AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+  target_link_options(auto_rt PRIVATE "/DEBUG:FASTLINK")
 endif()
+
+gtest_discover_tests(auto_rt)
 

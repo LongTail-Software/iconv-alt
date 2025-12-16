@@ -1,4 +1,4 @@
-﻿/*----------------------------------------------------------------------
+/*----------------------------------------------------------------------
  *  src/iconv_core.c  ―  iconv_open / iconv / iconv_close
  *  SJIS ⇆ UTF‑8   (CP932 superset)  —  完全ストリーム対応
  *--------------------------------------------------------------------*/
@@ -11,20 +11,10 @@
 #include <string.h>
 
  /*======================================================================
-  *  0.  SJIS <-> Unicode ルックアップ (同じロジックをここでも使用)
+  *  0.  SJIS <-> Unicode ルックアップ (sjis.c で定義)
   *====================================================================*/
-static int sjis_to_unicode(uint16_t code, uint32_t* uni)
-{
-    int lo = 0, hi = (int)(sizeof(SJIS_MAP) / sizeof(SJIS_MAP[0])) - 1;
-    while (lo <= hi) {
-        int mid = (lo + hi) / 2;
-        if (SJIS_MAP[mid].sjis == code) { *uni = SJIS_MAP[mid].uni; return 0; }
-        (code < SJIS_MAP[mid].sjis) ? (hi = mid - 1) : (lo = mid + 1);
-    }
-    return -1;
-}
-
-extern int unicode_to_sjis(uint32_t uni, uint16_t* sjis);  /* from sjis.c */
+extern int sjis_to_unicode(uint16_t code, uint32_t* uni);
+extern int unicode_to_sjis(uint32_t uni, uint16_t* sjis);
 
 /*======================================================================
  *  1.  UTF‑8 エンコード / デコード ヘルパ
@@ -85,14 +75,61 @@ typedef struct {
 /*======================================================================
  *  3.  iconv_open / close
  *====================================================================*/
+
+/* Check if encoding name matches SJIS variants (case-insensitive) */
+static int is_sjis_encoding(const char* name)
+{
+    /* Common SJIS aliases */
+    static const char* sjis_aliases[] = {
+        "SHIFT_JIS", "SHIFT-JIS", "SHIFTJIS",
+        "SJIS", "CP932", "MS932", "WINDOWS-31J",
+        "CSSHIFTJIS", "X-SJIS", "X-MS-CP932",
+        NULL
+    };
+    for (const char** p = sjis_aliases; *p; ++p) {
+        const char* a = *p;
+        const char* n = name;
+        /* Case-insensitive comparison */
+        while (*a && *n) {
+            char ca = (*a >= 'a' && *a <= 'z') ? (*a - 32) : *a;
+            char cn = (*n >= 'a' && *n <= 'z') ? (*n - 32) : *n;
+            if (ca != cn) break;
+            ++a; ++n;
+        }
+        if (*a == '\0' && *n == '\0') return 1;
+    }
+    return 0;
+}
+
+/* Check if encoding name matches UTF-8 variants (case-insensitive) */
+static int is_utf8_encoding(const char* name)
+{
+    static const char* utf8_aliases[] = {
+        "UTF-8", "UTF8", "CSUTF8",
+        NULL
+    };
+    for (const char** p = utf8_aliases; *p; ++p) {
+        const char* a = *p;
+        const char* n = name;
+        while (*a && *n) {
+            char ca = (*a >= 'a' && *a <= 'z') ? (*a - 32) : *a;
+            char cn = (*n >= 'a' && *n <= 'z') ? (*n - 32) : *n;
+            if (ca != cn) break;
+            ++a; ++n;
+        }
+        if (*a == '\0' && *n == '\0') return 1;
+    }
+    return 0;
+}
+
 iconv_t iconv_open(const char* tocode, const char* fromcode)
 {
     iconv_ctx* c = (iconv_ctx*)calloc(1, sizeof(iconv_ctx));
     if (!c) return (iconv_t)-1;
 
-    if (!strcmp(fromcode, "SHIFT_JIS") && !strcmp(tocode, "UTF-8"))
+    if (is_sjis_encoding(fromcode) && is_utf8_encoding(tocode))
         c->mode = M_SJIS2U8;
-    else if (!strcmp(fromcode, "UTF-8") && !strcmp(tocode, "SHIFT_JIS"))
+    else if (is_utf8_encoding(fromcode) && is_sjis_encoding(tocode))
         c->mode = M_U82SJIS;
     else { free(c); errno = EINVAL; return (iconv_t)-1; }
 

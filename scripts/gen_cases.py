@@ -22,14 +22,26 @@ for line in TABLE.read_text(encoding="utf-8").splitlines():
     if m:
         pairs.append((int(m[1], 16), int(m[2], 16)))
 
+
+def escape_for_cpp(uni: int) -> str:
+    """Convert Unicode code point to escaped C++ u8 string literal content.
+    
+    Returns the escaped string (without quotes) for use in u8"...".
+    """
+    # Encode to UTF-8 and escape each byte as \xHH
+    utf8_bytes = chr(uni).encode('utf-8')
+    return ''.join(f'\\x{b:02X}' for b in utf8_bytes)
+
+
 body: List[str] = []
 for sj, uni in pairs:
+    escaped = escape_for_cpp(uni)
     if sj <= 0xFF:
         # 1-byte SJIS (ASCII or half-width katakana)
-        body.append(f'    CASE1(0x{sj:02X}, u8"{chr(uni)}");')
+        body.append(f'    CASE1(0x{sj:02X}, u8"{escaped}");')
     else:
         # 2-byte SJIS
-        body.append(f'    CASE2(0x{sj:04X}, u8"{chr(uni)}");')
+        body.append(f'    CASE2(0x{sj:04X}, u8"{escaped}");')
 
 
 cpp = textwrap.dedent(f"""\
