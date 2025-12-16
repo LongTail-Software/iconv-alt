@@ -1,4 +1,4 @@
-﻿#include <gtest/gtest.h>
+#include <gtest/gtest.h>
 #include <iconv.h>
 #include <cerrno>
 #include <cstring>
@@ -15,6 +15,87 @@ TEST(RoundTrip, Basic) {
     ASSERT_EQ(0u, iconv(cd, &p, &in, &q, &out));
     iconv_close(cd);
 
+    p = utf8; in = strlen(utf8); q = back; out = sizeof(back);
+    cd = iconv_open("SHIFT_JIS", "UTF-8");
+    ASSERT_NE((iconv_t)-1, cd);
+    ASSERT_EQ(0u, iconv(cd, &p, &in, &q, &out));
+    iconv_close(cd);
+
+    EXPECT_STREQ(sjis, back);
+}
+
+/* -----------------------------------------------------------------
+ * 半角カナのラウンドトリップ (0xA1-0xDF → U+FF61-U+FF9F)
+ * ----------------------------------------------------------------*/
+TEST(RoundTrip, HalfWidthKatakana) {
+    // ｱｲｳｴｵ (SJIS: A1 B2 B3 B4 B5 → UTF-8: U+FF61, U+FF72, U+FF73, U+FF74, U+FF75)
+    const char sjis[] = "\xB1\xB2\xB3\xB4\xB5";  // ｱｲｳｴｵ
+    char utf8[32]{}, back[32]{};
+    size_t in = sizeof(sjis) - 1, out = sizeof(utf8);
+
+    char* p = (char*)sjis, * q = utf8;
+    iconv_t cd = iconv_open("UTF-8", "SHIFT_JIS");
+    ASSERT_NE((iconv_t)-1, cd);
+    ASSERT_EQ(0u, iconv(cd, &p, &in, &q, &out));
+    iconv_close(cd);
+
+    // Verify UTF-8 output: ｱｲｳｴｵ
+    EXPECT_STREQ(u8"ｱｲｳｴｵ", utf8);
+
+    // Round-trip back to SJIS
+    p = utf8; in = strlen(utf8); q = back; out = sizeof(back);
+    cd = iconv_open("SHIFT_JIS", "UTF-8");
+    ASSERT_NE((iconv_t)-1, cd);
+    ASSERT_EQ(0u, iconv(cd, &p, &in, &q, &out));
+    iconv_close(cd);
+
+    EXPECT_STREQ(sjis, back);
+}
+
+/* -----------------------------------------------------------------
+ * ASCII のラウンドトリップ
+ * ----------------------------------------------------------------*/
+TEST(RoundTrip, Ascii) {
+    const char sjis[] = "Hello, World!";
+    char utf8[32]{}, back[32]{};
+    size_t in = sizeof(sjis) - 1, out = sizeof(utf8);
+
+    char* p = (char*)sjis, * q = utf8;
+    iconv_t cd = iconv_open("UTF-8", "SHIFT_JIS");
+    ASSERT_NE((iconv_t)-1, cd);
+    ASSERT_EQ(0u, iconv(cd, &p, &in, &q, &out));
+    iconv_close(cd);
+
+    EXPECT_STREQ("Hello, World!", utf8);
+
+    // Round-trip back to SJIS
+    p = utf8; in = strlen(utf8); q = back; out = sizeof(back);
+    cd = iconv_open("SHIFT_JIS", "UTF-8");
+    ASSERT_NE((iconv_t)-1, cd);
+    ASSERT_EQ(0u, iconv(cd, &p, &in, &q, &out));
+    iconv_close(cd);
+
+    EXPECT_STREQ(sjis, back);
+}
+
+/* -----------------------------------------------------------------
+ * 混合テスト: 全角 + 半角カナ + ASCII
+ * ----------------------------------------------------------------*/
+TEST(RoundTrip, Mixed) {
+    // あいう + ｱｲｳ + ABC
+    const char sjis[] = "\x82\xa0\x82\xa2\x82\xa4\xB1\xB2\xB3" "ABC";
+    char utf8[64]{}, back[64]{};
+    size_t in = sizeof(sjis) - 1, out = sizeof(utf8);
+
+    char* p = (char*)sjis, * q = utf8;
+    iconv_t cd = iconv_open("UTF-8", "SHIFT_JIS");
+    ASSERT_NE((iconv_t)-1, cd);
+    ASSERT_EQ(0u, iconv(cd, &p, &in, &q, &out));
+    iconv_close(cd);
+
+    EXPECT_STREQ(u8"あいうｱｲｳABC", utf8);
+
+    // Round-trip back to SJIS
     p = utf8; in = strlen(utf8); q = back; out = sizeof(back);
     cd = iconv_open("SHIFT_JIS", "UTF-8");
     ASSERT_NE((iconv_t)-1, cd);
