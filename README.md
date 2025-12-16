@@ -20,6 +20,17 @@ Includes support for:
 - Half-width Katakana (0xA1-0xDF → U+FF61-U+FF9F)
 - ASCII (0x00-0x7F)
 
+### Encoding Name Aliases
+
+The following encoding names are recognized (case-insensitive):
+
+| SJIS variants | UTF-8 variants |
+|---------------|----------------|
+| `SHIFT_JIS`, `SHIFT-JIS`, `SHIFTJIS` | `UTF-8`, `UTF8` |
+| `SJIS`, `CP932`, `MS932` | `CSUTF8` |
+| `Windows-31J`, `CSSHIFTJIS` | |
+| `X-SJIS`, `X-MS-CP932` | |
+
 ## API Reference
 
 ```c
@@ -162,6 +173,10 @@ python scripts/gen_cases.py        # Generates tests/auto_rt.cpp
 | `Error.Utf8ToSjis_IllegalSequence` | Unconvertible character (emoji) |
 | `Error.Utf8ToSjis_IncompleteSequence` | Truncated UTF-8 input |
 | `Error.SjisToUtf8_BufferTooSmall` | Output buffer overflow |
+| `Alias.CP932ToUtf8` | CP932 encoding name alias |
+| `Alias.Utf8ToSjis` | Case-insensitive encoding names |
+| `Alias.Windows31J` | Windows-31J encoding name alias |
+| `Alias.InvalidEncoding` | Unknown encoding returns error |
 
 ## License
 

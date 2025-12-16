@@ -158,3 +158,43 @@ TEST(Error, SjisToUtf8_BufferTooSmall) {
     EXPECT_EQ(E2BIG, errno);            // 出力不足
     iconv_close(cd);
 }
+
+/* -----------------------------------------------------------------
+ * エンコーディング名エイリアス: CP932, SJIS, utf-8 など
+ * ----------------------------------------------------------------*/
+TEST(Alias, CP932ToUtf8) {
+    const char sjis[] = "\x82\xa0";  // あ
+    char utf8[8]{};
+    char* in = (char*)sjis, * out = utf8;
+    size_t inleft = 2, outleft = sizeof(utf8);
+
+    iconv_t cd = iconv_open("UTF-8", "CP932");
+    ASSERT_NE((iconv_t)-1, cd);
+    EXPECT_EQ(0u, iconv(cd, &in, &inleft, &out, &outleft));
+    iconv_close(cd);
+    EXPECT_STREQ(u8"あ", utf8);
+}
+
+TEST(Alias, Utf8ToSjis) {
+    const char utf8[] = u8"あ";
+    char sjis[8]{};
+    char* in = (char*)utf8, * out = sjis;
+    size_t inleft = strlen(utf8), outleft = sizeof(sjis);
+
+    iconv_t cd = iconv_open("sjis", "utf8");  // 小文字でもOK
+    ASSERT_NE((iconv_t)-1, cd);
+    EXPECT_EQ(0u, iconv(cd, &in, &inleft, &out, &outleft));
+    iconv_close(cd);
+    EXPECT_STREQ("\x82\xa0", sjis);
+}
+
+TEST(Alias, Windows31J) {
+    iconv_t cd = iconv_open("UTF-8", "Windows-31J");
+    EXPECT_NE((iconv_t)-1, cd);
+    if (cd != (iconv_t)-1) iconv_close(cd);
+}
+
+TEST(Alias, InvalidEncoding) {
+    iconv_t cd = iconv_open("UTF-8", "UNKNOWN");
+    EXPECT_EQ((iconv_t)-1, cd);
+}
